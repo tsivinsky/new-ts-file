@@ -2,7 +2,7 @@
   "name": "new-ts-file",
   "displayName": "new-ts-file",
   "description": "Create new .ts files without tears",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.55.0"
   },
