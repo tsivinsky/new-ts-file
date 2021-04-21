@@ -1,0 +1,37 @@
+{
+  "name": "new-ts-file",
+  "displayName": "new-ts-file",
+  "description": "Create new .ts files without tears",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.55.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:new-ts-file.newTsFile"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "new-ts-file.newTsFile",
+        "title": "Create new .ts file"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.55.0",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^12.11.7",
+    "glob": "^7.1.6",
+    "typescript": "^4.1.3",
+    "vscode-test": "^1.5.0"
+  }
+}
