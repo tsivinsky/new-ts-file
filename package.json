@@ -19,6 +19,12 @@
         "command": "new-ts-file.newTsFile",
         "title": "Create new .ts file"
       }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+alt+n",
+        "command": "new-ts-file.newTsFile"
+      }
     ]
   },
   "scripts": {
