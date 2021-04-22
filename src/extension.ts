@@ -1,69 +1,56 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "new-ts-file" is now active!');
-
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
   let disposable = vscode.commands.registerCommand(
     "new-ts-file.newTsFile",
-    () => {
-      // The code you place here will be executed every time your command is executed
+    async () => {
+      if (vscode.workspace.workspaceFolders?.length === 0) {
+        return vscode.window.showErrorMessage(
+          "You need to open some directory"
+        );
+      }
 
-      vscode.window
-        .showInputBox({ placeHolder: "Enter a file name" })
-        .then((filename) => {
-          if (!filename) {
-            return vscode.window.showErrorMessage(
-              "You need to enter the filename you want to create"
-            );
-          }
+      let pathToCreate = await vscode.window.showInputBox({
+        placeHolder: "Enter a file name",
+      });
 
-          if (vscode.workspace.workspaceFolders?.length === 0) {
-            return vscode.window.showErrorMessage(
-              "You need to open some directory"
-            );
-          }
+      if (!pathToCreate) {
+        return vscode.window.showErrorMessage(
+          "You need to enter the filename you want to create"
+        );
+      }
 
-          // Get current working directory
-          const basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      const basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      const fileExt = path.extname(pathToCreate);
 
-          // Append .ts extension
-          if (!/\.tsx?$/.test(filename)) {
-            filename += ".ts";
-          }
+      // Append .ts extension is user didn't specify the extension
+      if (!fileExt) {
+        pathToCreate += ".ts";
+      }
 
-          // If filename contains '/', separate filename by them and create these directories
-          if (filename.includes("/")) {
-            const directories = filename.split("/");
-            directories.pop(); // Remove filename (the last element)
+      // If filename contains '/', it has directories in it, create them
+      if (pathToCreate.includes("/")) {
+        const directories = pathToCreate.split("/");
+        directories.pop(); // Remove filename (the last element)
+        const fullPath = vscode.Uri.parse(
+          path.join(basePath, directories.join("/"))
+        );
 
-            fs.mkdirSync(path.join(basePath, directories.join("/")), {
-              recursive: true,
-            });
-          }
+        await vscode.workspace.fs.createDirectory(fullPath);
+      }
 
-          const filePath = path.join(basePath, filename);
+      // Create file
+      const filePath = vscode.Uri.parse(path.join(basePath, pathToCreate));
+      await vscode.workspace.fs.writeFile(filePath, Buffer.from("", "utf-8"));
 
-          vscode.workspace.fs.writeFile(
-            vscode.Uri.parse(filePath),
-            Buffer.from("", "utf-8")
-          );
-        });
+      // Open file
+      const file = await vscode.workspace.openTextDocument(filePath);
+      vscode.window.showTextDocument(file);
     }
   );
 
   context.subscriptions.push(disposable);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
