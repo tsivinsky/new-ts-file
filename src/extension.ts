@@ -22,46 +22,59 @@ export function activate(context: vscode.ExtensionContext) {
         );
       }
 
-      const basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
-      const fileExt = path.extname(pathToCreate);
+      if (pathToCreate.includes(";")) {
+        // User wants to create several files
+        const files = pathToCreate.split(";");
 
-      // Check if file on this path already exists
-      const pathToCheckExisting = fileExt
-        ? path.join(basePath, pathToCreate)
-        : path.join(basePath, pathToCreate + ".ts");
-      if (fs.existsSync(pathToCheckExisting)) {
-        return vscode.window.showErrorMessage(
-          `File ${pathToCreate} already exists`
-        );
+        for (const file of files) {
+          await createFile(file);
+        }
+      } else {
+        await createFile(pathToCreate);
       }
-
-      // Append .ts extension if user didn't specify the extension
-      if (!fileExt) {
-        pathToCreate += ".ts";
-      }
-
-      // If filename contains '/', it has directories in it, create them
-      if (pathToCreate.includes("/")) {
-        const directories = pathToCreate.split("/");
-        directories.pop(); // Remove filename (the last element)
-        const fullPath = vscode.Uri.parse(
-          path.join(basePath, directories.join("/"))
-        );
-
-        await vscode.workspace.fs.createDirectory(fullPath);
-      }
-
-      // Create file
-      const filePath = vscode.Uri.parse(path.join(basePath, pathToCreate));
-      await vscode.workspace.fs.writeFile(filePath, Buffer.from("", "utf-8"));
-
-      // Open file
-      const file = await vscode.workspace.openTextDocument(filePath);
-      vscode.window.showTextDocument(file);
     }
   );
 
   context.subscriptions.push(disposable);
+}
+
+async function createFile(pathToCreate: string) {
+  const basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+  const fileExt = path.extname(pathToCreate);
+
+  // Check if file on this path already exists
+  const pathToCheckExisting = fileExt
+    ? path.join(basePath, pathToCreate)
+    : path.join(basePath, pathToCreate + ".ts");
+  if (fs.existsSync(pathToCheckExisting)) {
+    return vscode.window.showErrorMessage(
+      `File ${pathToCreate} already exists`
+    );
+  }
+
+  // Append .ts extension if user didn't specify the extension
+  if (!fileExt) {
+    pathToCreate += ".ts";
+  }
+
+  // If filename contains '/', it has directories in it, create them
+  if (pathToCreate.includes("/")) {
+    const directories = pathToCreate.split("/");
+    directories.pop(); // Remove filename (the last element)
+    const fullPath = vscode.Uri.parse(
+      path.join(basePath, directories.join("/"))
+    );
+
+    await vscode.workspace.fs.createDirectory(fullPath);
+  }
+
+  // Create file
+  const filePath = vscode.Uri.parse(path.join(basePath, pathToCreate));
+  await vscode.workspace.fs.writeFile(filePath, Buffer.from("", "utf-8"));
+
+  // Open file
+  const file = await vscode.workspace.openTextDocument(filePath);
+  vscode.window.showTextDocument(file);
 }
 
 export function deactivate() {}
