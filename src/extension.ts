@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 
 export function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.commands.registerCommand(
@@ -24,7 +25,17 @@ export function activate(context: vscode.ExtensionContext) {
       const basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
       const fileExt = path.extname(pathToCreate);
 
-      // Append .ts extension is user didn't specify the extension
+      // Check if file on this path already exists
+      const pathToCheckExisting = fileExt
+        ? path.join(basePath, pathToCreate)
+        : path.join(basePath, pathToCreate + ".ts");
+      if (fs.existsSync(pathToCheckExisting)) {
+        return vscode.window.showErrorMessage(
+          `File ${pathToCreate} already exists`
+        );
+      }
+
+      // Append .ts extension if user didn't specify the extension
       if (!fileExt) {
         pathToCreate += ".ts";
       }
