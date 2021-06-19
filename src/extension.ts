@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function createFile(pathToCreate: string) {
-  const basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+  let basePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const fileExt = path.extname(pathToCreate);
 
   // Check if file on this path already exists
@@ -55,6 +55,21 @@ async function createFile(pathToCreate: string) {
   // Append .ts extension if user didn't specify the extension
   if (!fileExt) {
     pathToCreate += ".ts";
+  }
+
+  // User wants to create a new file relative to the opened file
+  if (pathToCreate.startsWith("./")) {
+    if (!vscode.window.activeTextEditor) {
+      return vscode.window.showErrorMessage(
+        "You need to open some file so extension create a new file next to it"
+      );
+    }
+
+    const activeFilePath =
+      vscode.window.activeTextEditor!.document.uri.fsPath.split("/");
+    activeFilePath.pop();
+
+    basePath = activeFilePath.join("/");
   }
 
   // If filename contains '/', it has directories in it, create them
